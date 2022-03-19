@@ -1,8 +1,8 @@
 properties([parameters([string(defaultValue: '713287746880', description: 'Please provide your AWS account ', name: 'AWS_ACCOUNT', trim: true)])])
 
 node {
-    def REPOLOCATION = "https://github.com/farrukh90/jenkins-packer.git"
-    def BRANCHNAME = "main"
+    def REPOLOCATION = "https://github.com/metinbor/jenkins-packer.git"
+    def BRANCHNAME = "master"
     
     stage("Clean Up") {
         sh "docker images"
@@ -10,38 +10,38 @@ node {
     }
     stage("Pull Docker Image"){
         sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com"
-        sh "docker pull ${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest"
+        sh "docker pull metinbor/sharedtools"
     }
-    withDockerContainer(image: '${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest'){
+    withDockerContainer(image: 'metinbor/sharedtools'){
         stage("Clone") {
             checkout([$class: 'GitSCM', branches: [[name: "*/${BRANCHNAME}"]], extensions: [], userRemoteConfigs: [[url: "${REPOLOCATION}"]]])
         }
     }
-    withDockerContainer(image: '${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest'){
+    withDockerContainer(image: 'metinbor/sharedtools'){
         stage("Initialize") {
-            sh "packer version"
+            sh "packer init"
         }
     }
-    withDockerContainer(image: '${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest'){
+    withDockerContainer(image: 'metinbor/sharedtools'){
         stage("Validate") {
-            sh "packer version"
+            sh "packer validate"
         }
     }
-    withDockerContainer(image: '${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest'){
-        stage("Apply") {
-            sh "packer version"
+    withDockerContainer(image: 'metinbor/sharedtools'){
+        stage("Build") {
+            sh "packer build ."
         }
     }
     stage("Email notification") {
         sh "echo hello"
     }
 
-    withDockerContainer(image: '${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest'){
+    withDockerContainer(image: 'metinbor/sharedtools'){
             stage("kubernetes") {
                 sh "kubectl version --client"
         }
     }
-    withDockerContainer(image: '${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/tools:latest'){
+    withDockerContainer(image: 'metinbor/sharedtools'){
             stage("helm") {
                 sh "helm version"
         }
