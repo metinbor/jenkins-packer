@@ -19,7 +19,7 @@ node {
     }
     withDockerContainer(image: 'metinbor/sharedtools'){
         stage("Initialize") {
-            sh "packer init"
+            sh "packer init ."
         }
     }
     withDockerContainer(image: 'metinbor/sharedtools'){
